@@ -409,8 +409,26 @@ form {
   gap: 0.75rem;
 }
 
+.availability-form,
+.availability-date-time-field {
+  min-inline-size: 0;
+}
+
+.availability-date-time-field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.availability-date-time-hint {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+
 input[type='datetime-local'] {
+  box-sizing: border-box;
   inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   min-block-size: 2.75rem;
   padding: 0.625rem 0.75rem;
   border: 2px solid var(--color-border);
@@ -418,6 +436,24 @@ input[type='datetime-local'] {
   background: var(--color-surface);
   color: var(--color-text);
   color-scheme: inherit;
+}
+
+/* Safari/iOS renders date and time fields inside a WebKit shadow tree. */
+input[type='datetime-local']::-webkit-datetime-edit,
+input[type='datetime-local']::-webkit-datetime-edit-fields-wrapper,
+input[type='datetime-local']::-webkit-datetime-edit-text,
+input[type='datetime-local']::-webkit-datetime-edit-month-field,
+input[type='datetime-local']::-webkit-datetime-edit-day-field,
+input[type='datetime-local']::-webkit-datetime-edit-year-field,
+input[type='datetime-local']::-webkit-datetime-edit-hour-field,
+input[type='datetime-local']::-webkit-datetime-edit-minute-field,
+input[type='datetime-local']::-webkit-datetime-edit-ampm-field {
+  color: var(--color-text);
+}
+
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  color: var(--color-text);
+  opacity: 1;
 }
 
 input[type='text'],
@@ -613,8 +649,8 @@ h1[tabindex='-1']:focus {
     align-items: end;
   }
 
-  form:not(.local-profile-form) > label {
-    grid-column: 1 / -1;
+  .availability-date-time-field {
+    grid-column: 1;
   }
 
   .welcome-screen {

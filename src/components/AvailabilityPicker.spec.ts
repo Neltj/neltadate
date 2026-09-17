@@ -14,6 +14,12 @@ describe('AvailabilityPicker', () => {
 
     expect(wrapper.get('label[for="availability-date-time"]').text()).toBe('Data e ora');
     expect(input.attributes('type')).toBe('datetime-local');
+    expect(wrapper.get('#availability-date-time-hint').text()).toBe(
+      'Seleziona una data e un orario nel formato giorno, mese, anno, ore e minuti.',
+    );
+    expect(input.attributes('aria-describedby')).toBe(
+      'availability-date-time-hint availability-error',
+    );
     expect(input.element.tabIndex).toBeGreaterThanOrEqual(0);
 
     await input.setValue(selectedDateTime);

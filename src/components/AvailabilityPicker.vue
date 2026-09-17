@@ -48,15 +48,20 @@ function complete(): void {
     <p>Le disponibilità restano solo in questa pagina e non vengono inviate.</p>
     <p>Inserendo di nuovo lo stesso orario, lo rimuovi dalla lista.</p>
 
-    <form @submit.prevent="addOrToggleDateTime">
-      <label for="availability-date-time">Data e ora</label>
-      <input
-        id="availability-date-time"
-        v-model="dateTime"
-        type="datetime-local"
-        step="60"
-        aria-describedby="availability-error"
-      />
+    <form class="availability-form" @submit.prevent="addOrToggleDateTime">
+      <div class="availability-date-time-field">
+        <label for="availability-date-time">Data e ora</label>
+        <p id="availability-date-time-hint" class="availability-date-time-hint">
+          Seleziona una data e un orario nel formato giorno, mese, anno, ore e minuti.
+        </p>
+        <input
+          id="availability-date-time"
+          v-model="dateTime"
+          type="datetime-local"
+          step="60"
+          aria-describedby="availability-date-time-hint availability-error"
+        />
+      </div>
       <button type="submit">Aggiungi o rimuovi l’orario</button>
     </form>
 
