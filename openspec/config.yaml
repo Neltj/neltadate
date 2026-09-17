@@ -1,0 +1,51 @@
+# Spec-Driven Development configuration
+schema: spec-driven
+
+context: |
+  Project state: no application project or source files are present yet.
+  Intended product: a browser-based, playful date-preference quiz.
+  Architecture: to be decided during SDD exploration.
+  Testing: no workspace-wide test command is available.
+  Style: technical artifacts are written in English.
+
+strict_tdd: false
+projects: []
+
+testing:
+  detected: '2026-09-13'
+  workspace_test_command: ''
+  capabilities:
+    test_runner: null
+    test_layers: []
+    coverage: null
+    linter: null
+    type_checker: null
+    formatter: null
+  rationale: >-
+    No in-scope project markers or workspace-level test command were discovered;
+    strict TDD is disabled until a project and an explicit workspace-wide test
+    command exist.
+
+rules:
+  proposal:
+    - Keep initial scope suitable for a browser-only MVP.
+    - Identify consent, rejection, and privacy behavior explicitly.
+  specs:
+    - Use Given/When/Then scenarios and RFC 2119 terms.
+  design:
+    - Record architecture decisions and their rationale.
+  tasks:
+    - Group work into small, dependency-ordered tasks.
+    - Keep the planned delivery within one PR unless the maintainer approves otherwise.
+  apply:
+    guidelines:
+      - Follow the selected project conventions once the application is scaffolded.
+      - In learning mode, the user applies application changes manually.
+    tdd: false
+    test_command: ''
+  verify:
+    test_command: ''
+    build_command: ''
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas.
