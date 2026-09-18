@@ -32,30 +32,35 @@ export interface QuizFlowState extends BaseFlowState {
   readonly currentQuestionIndex: number;
   readonly decision: null;
   readonly selectedDateTimes: readonly LocalDateTime[];
+  readonly preferredDateTime: LocalDateTime | null;
 }
 
 export interface DecisionFlowState extends BaseFlowState {
   readonly phase: 'decision';
   readonly decision: null;
   readonly selectedDateTimes: readonly LocalDateTime[];
+  readonly preferredDateTime: LocalDateTime | null;
 }
 
 export interface AvailabilityFlowState extends BaseFlowState {
   readonly phase: 'availability';
   readonly decision: 'accepted';
   readonly selectedDateTimes: readonly LocalDateTime[];
+  readonly preferredDateTime: LocalDateTime | null;
 }
 
 export interface SummaryFlowState extends BaseFlowState {
   readonly phase: 'summary';
   readonly decision: 'accepted';
   readonly selectedDateTimes: readonly LocalDateTime[];
+  readonly preferredDateTime: LocalDateTime | null;
 }
 
 export interface DeclinedFlowState extends BaseFlowState {
   readonly phase: 'declined';
   readonly decision: 'declined';
   readonly selectedDateTimes: readonly [];
+  readonly preferredDateTime: null;
 }
 
 export type DateQuizFlowState =
@@ -68,6 +73,7 @@ export interface DateQuizCommands {
   decide(decision: Exclude<Decision, null>): boolean;
   addOrToggleDateTime(value: string): boolean;
   removeDateTime(value: LocalDateTime): boolean;
+  setPreferredDateTime(value: LocalDateTime): boolean;
   complete(): boolean;
   reset(): void;
 }

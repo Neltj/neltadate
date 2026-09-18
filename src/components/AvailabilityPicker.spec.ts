@@ -54,10 +54,51 @@ describe('AvailabilityPicker', () => {
 
     expect(wrapper.get('time').attributes('datetime')).toBe(selectedDateTime);
     expect(wrapper.text()).toContain('2032-06-14 alle 18:45');
+    expect(wrapper.text()).toContain('lunedì 14 giugno · sera');
     expect(removeButton.element.tabIndex).toBeGreaterThanOrEqual(0);
 
     await removeButton.trigger('click');
 
     expect(wrapper.emitted('remove')).toEqual([[selectedDateTime]]);
+  });
+
+  it('permette di indicare una disponibilità preferita', async () => {
+    const secondDateTime = '2032-06-15T20:00';
+    const wrapper = mount(AvailabilityPicker, {
+      props: { selectedDateTimes: [selectedDateTime, secondDateTime] },
+    });
+
+    const preferredButton = wrapper.get<HTMLButtonElement>(
+      'button[aria-label="Rimuovi 2032-06-14 alle 18:45"]',
+    ).element.previousElementSibling as HTMLButtonElement;
+
+    expect(preferredButton.textContent).toBe('Segna come preferita');
+    await preferredButton.click();
+
+    expect(wrapper.emitted('set-preferred')).toEqual([[selectedDateTime]]);
+  });
+
+  it('rifiuta un orario passato o duplicato senza emettere una nuova disponibilità', async () => {
+    const wrapper = mount(AvailabilityPicker, {
+      props: { selectedDateTimes: [selectedDateTime] },
+    });
+    const input = wrapper.get<HTMLInputElement>('#availability-date-time');
+
+    await input.setValue('2020-06-14T18:45');
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.get('#availability-error').text()).toBe(
+      'Scegli una data e un orario nel futuro.',
+    );
+    expect(wrapper.emitted('add-or-toggle')).toBeUndefined();
+    expect(input.element.value).toBe('2020-06-14T18:45');
+
+    await input.setValue(selectedDateTime);
+    await wrapper.get('form').trigger('submit');
+
+    expect(wrapper.get('#availability-error').text()).toBe(
+      'Hai già aggiunto questa disponibilità.',
+    );
+    expect(wrapper.emitted('add-or-toggle')).toBeUndefined();
   });
 });

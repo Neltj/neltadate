@@ -90,6 +90,19 @@ describe('CompletionSummary', () => {
     expect(invitationCard.get('ul').attributes('aria-label')).toBe('Date e orari proposti');
   });
 
+  it('evidenzia la disponibilità preferita nel riepilogo', () => {
+    const wrapper = mount(CompletionSummary, {
+      props: {
+        ...summaryProps,
+        selectedDateTimes: ['2032-06-14T18:45', '2032-06-15T20:00'],
+        preferredDateTime: '2032-06-15T20:00',
+      },
+    });
+
+    expect(wrapper.findAll('.preferred-badge')).toHaveLength(2);
+    expect(wrapper.text()).toContain('Preferita');
+  });
+
   it('mostra il pulsante calendario nella card per ogni disponibilità proposta', () => {
     const wrapper = mount(CompletionSummary, { props: summaryProps });
 

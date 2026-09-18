@@ -2,6 +2,7 @@ import type { LocalDateTime } from '../types/quiz';
 
 export interface CalendarExportInput {
   readonly dateTimes: readonly LocalDateTime[];
+  readonly preferredDateTime?: LocalDateTime | null;
   readonly summary: string;
   readonly description: string;
 }
@@ -91,8 +92,14 @@ export function buildCalendarIcs(input: CalendarExportInput, now = new Date()): 
       `DTSTAMP:${timestamp}`,
       `DTSTART:${formatLocalDateTime(startsAt)}`,
       `DTEND:${formatLocalDateTime(endsAt)}`,
-      `SUMMARY:${escapeIcsText(input.summary)}`,
-      `DESCRIPTION:${escapeIcsText(input.description)}`,
+      `SUMMARY:${escapeIcsText(
+        dateTime === input.preferredDateTime ? `${input.summary} — preferita` : input.summary,
+      )}`,
+      `DESCRIPTION:${escapeIcsText(
+        dateTime === input.preferredDateTime
+          ? `${input.description}\nQuesta è la disponibilità preferita.`
+          : input.description,
+      )}`,
       'END:VEVENT',
     ];
   });

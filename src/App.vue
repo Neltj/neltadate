@@ -18,6 +18,7 @@ const {
   decide,
   addOrToggleDateTime,
   removeDateTime,
+  setPreferredDateTime,
   complete,
   reset,
 } = useDateQuiz();
@@ -146,8 +147,10 @@ watch(
 
         <AvailabilityPicker
           :selected-date-times="state.selectedDateTimes"
+          :preferred-date-time="state.preferredDateTime"
           @add-or-toggle="addOrToggleDateTime"
           @remove="removeDateTime"
+          @set-preferred="setPreferredDateTime"
           @back="back"
           @complete="complete"
         />
@@ -160,6 +163,7 @@ watch(
           :name="profileName ?? ''"
           :answers="state.answers"
           :selected-date-times="state.selectedDateTimes"
+          :preferred-date-time="state.preferredDateTime"
           @restart="restartQuiz"
         />
       </section>

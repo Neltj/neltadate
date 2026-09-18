@@ -8,6 +8,7 @@ const props = defineProps<{
   name: string;
   answers: QuizAnswers;
   selectedDateTimes: readonly LocalDateTime[];
+  preferredDateTime?: LocalDateTime | null;
 }>();
 
 const emit = defineEmits<{
@@ -52,6 +53,7 @@ const invitationLine = computed(() =>
 );
 const venueSurpriseLine = 'Il luogo resta una sorpresa: ti basterà portare la tua curiosità.';
 const actionStatus = ref('');
+const preferredDateTime = computed(() => props.preferredDateTime ?? null);
 
 function formatDateTime(value: LocalDateTime): string {
   return value.replace('T', ' alle ');
@@ -73,6 +75,9 @@ const shareText = computed(() => {
       props.selectedDateTimes.map((value) => `- ${formatDateTime(value)}`).join('\n') ||
       '- Nessuna disponibilità selezionata'
     }`,
+    preferredDateTime.value
+      ? `Preferita:\n- ${formatDateTime(preferredDateTime.value)}`
+      : 'Preferita:\n- Nessuna disponibilità indicata',
   ];
 
   return sections.join('\n\n');
@@ -91,6 +96,7 @@ function downloadCalendar(): void {
   try {
     const calendar = buildCalendarIcs({
       dateTimes: props.selectedDateTimes,
+      preferredDateTime: preferredDateTime.value,
       summary: 'Un momento da aspettare',
       description: venueSurpriseLine,
     });
@@ -173,6 +179,9 @@ async function shareSummary(): Promise<void> {
       >
         <li v-for="selectedDateTime in selectedDateTimes" :key="selectedDateTime">
           <time :datetime="selectedDateTime">{{ formatDateTime(selectedDateTime) }}</time>
+          <strong v-if="preferredDateTime === selectedDateTime" class="preferred-badge">
+            Preferita
+          </strong>
         </li>
       </ul>
 
@@ -217,6 +226,9 @@ async function shareSummary(): Promise<void> {
       <ul>
         <li v-for="selectedDateTime in selectedDateTimes" :key="selectedDateTime">
           <time :datetime="selectedDateTime">{{ formatDateTime(selectedDateTime) }}</time>
+          <strong v-if="preferredDateTime === selectedDateTime" class="preferred-badge">
+            Preferita
+          </strong>
         </li>
       </ul>
     </section>

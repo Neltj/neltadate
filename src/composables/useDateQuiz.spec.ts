@@ -3,6 +3,7 @@ import { questions } from '../data/questions';
 import { useDateQuiz } from './useDateQuiz';
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -132,7 +133,7 @@ describe('useDateQuiz', () => {
     expect(quiz.state.value.selectedDateTimes).toEqual([]);
   });
 
-  it('validates, toggles, removes, and completes date-time selections', () => {
+  it('validates, deduplicates, sorts, removes, and completes date-time selections', () => {
     const quiz = useDateQuiz();
     const firstDateTime = '2032-02-29T09:15';
     const secondDateTime = '2032-06-14T18:45';
@@ -143,17 +144,37 @@ describe('useDateQuiz', () => {
     expect(quiz.addOrToggleDateTime('2032-06-14T24:00')).toBe(false);
     expect(quiz.complete()).toBe(false);
 
-    expect(quiz.addOrToggleDateTime(firstDateTime)).toBe(true);
     expect(quiz.addOrToggleDateTime(secondDateTime)).toBe(true);
-
     expect(quiz.addOrToggleDateTime(firstDateTime)).toBe(true);
-    expect(quiz.removeDateTime(firstDateTime)).toBe(false);
+    expect(quiz.state.value.selectedDateTimes).toEqual([firstDateTime, secondDateTime]);
+    expect(quiz.setPreferredDateTime('2031-02-29T09:15')).toBe(false);
+    expect(quiz.setPreferredDateTime(firstDateTime)).toBe(true);
+    expect(quiz.state.value.preferredDateTime).toBe(firstDateTime);
+
+    expect(quiz.addOrToggleDateTime(firstDateTime)).toBe(false);
+    expect(quiz.state.value.selectedDateTimes).toEqual([firstDateTime, secondDateTime]);
+    expect(quiz.state.value.preferredDateTime).toBe(firstDateTime);
+    expect(quiz.removeDateTime(firstDateTime)).toBe(true);
+    expect(quiz.state.value.preferredDateTime).toBeNull();
     expect(quiz.removeDateTime(secondDateTime)).toBe(true);
     expect(quiz.complete()).toBe(false);
 
     expect(quiz.addOrToggleDateTime(secondDateTime)).toBe(true);
     expect(quiz.complete()).toBe(true);
     expect(quiz.state.value.phase).toBe('summary');
+  });
+
+  it('considers the chosen local minute future only when it is still ahead of now', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2032, 5, 14, 18, 45, 30));
+
+    const quiz = useDateQuiz();
+    acceptQuiz(quiz);
+
+    expect(quiz.addOrToggleDateTime('2032-06-14T18:45')).toBe(false);
+    expect(quiz.state.value.selectedDateTimes).toEqual([]);
+    expect(quiz.addOrToggleDateTime('2032-06-14T18:46')).toBe(true);
+    expect(quiz.state.value.selectedDateTimes).toEqual(['2032-06-14T18:46']);
   });
 
   it('resets all local state', () => {
@@ -171,6 +192,7 @@ describe('useDateQuiz', () => {
       currentQuestionIndex: 0,
       decision: null,
       selectedDateTimes: [],
+      preferredDateTime: null,
     });
 
     quiz.reset();
@@ -181,6 +203,7 @@ describe('useDateQuiz', () => {
       currentQuestionIndex: 0,
       decision: null,
       selectedDateTimes: [],
+      preferredDateTime: null,
     });
   });
 

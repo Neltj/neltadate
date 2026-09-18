@@ -295,6 +295,26 @@ article section {
   white-space: nowrap;
 }
 
+.preferred-badge {
+  display: inline-block;
+  margin-inline-start: 0.5rem;
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+}
+
+.availability-context {
+  display: block;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.availability-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 0.5rem;
+}
+
 .invitation-card__surprise {
   display: flex;
   gap: 0.5rem;

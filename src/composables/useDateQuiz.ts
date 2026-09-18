@@ -1,5 +1,6 @@
 import { computed, ref, type ComputedRef } from 'vue';
 import { questions } from '../data/questions';
+import { isFutureLocalDateTime, isValidLocalDateTime } from '../utils/dateTime';
 import type {
   DateQuizCommands,
   DateQuizFlowState,
@@ -9,24 +10,6 @@ import type {
   QuizAnswers,
   QuizQuestion,
 } from '../types/quiz';
-
-function daysInMonth(year: number, month: number): number {
-  const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-
-  return [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] ?? 0;
-}
-
-function isValidLocalDateTime(value: string): boolean {
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(?:[01]\d|2[0-3]):[0-5]\d$/);
-
-  if (!match) return false;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-
-  return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(year, month);
-}
 
 export interface UseDateQuiz extends DateQuizCommands {
   readonly state: ComputedRef<DateQuizFlowState>;
@@ -41,6 +24,7 @@ export function useDateQuiz(): UseDateQuiz {
   const currentQuestionIndex = ref(0);
   const decision = ref<Decision>(null);
   const selectedDateTimes = ref<LocalDateTime[]>([]);
+  const preferredDateTime = ref<LocalDateTime | null>(null);
 
   const activeQuestions = computed(() => questions);
 
@@ -68,6 +52,7 @@ export function useDateQuiz(): UseDateQuiz {
           currentQuestionIndex: currentQuestionIndex.value,
           decision: null,
           selectedDateTimes: readonlyDateTimes,
+          preferredDateTime: preferredDateTime.value,
         };
       case 'decision':
         return {
@@ -75,6 +60,7 @@ export function useDateQuiz(): UseDateQuiz {
           answers: readonlyAnswers,
           decision: null,
           selectedDateTimes: readonlyDateTimes,
+          preferredDateTime: preferredDateTime.value,
         };
       case 'availability':
         return {
@@ -82,6 +68,7 @@ export function useDateQuiz(): UseDateQuiz {
           answers: readonlyAnswers,
           decision: 'accepted',
           selectedDateTimes: readonlyDateTimes,
+          preferredDateTime: preferredDateTime.value,
         };
       case 'summary':
         return {
@@ -89,6 +76,7 @@ export function useDateQuiz(): UseDateQuiz {
           answers: readonlyAnswers,
           decision: 'accepted',
           selectedDateTimes: readonlyDateTimes,
+          preferredDateTime: preferredDateTime.value,
         };
       case 'declined':
         return {
@@ -96,6 +84,7 @@ export function useDateQuiz(): UseDateQuiz {
           answers: readonlyAnswers,
           decision: 'declined',
           selectedDateTimes: [],
+          preferredDateTime: null,
         };
       default:
         throw new Error('Unsupported quiz phase');
@@ -160,19 +149,19 @@ export function useDateQuiz(): UseDateQuiz {
     }
 
     selectedDateTimes.value = [];
+    preferredDateTime.value = null;
     phase.value = 'declined';
     return true;
   }
 
   function addOrToggleDateTime(value: string): boolean {
     if (phase.value !== 'availability') return false;
-    if (!isValidLocalDateTime(value)) return false;
+    if (!isValidLocalDateTime(value) || !isFutureLocalDateTime(value)) return false;
+    if (selectedDateTimes.value.includes(value)) return false;
 
-    const isSelected = selectedDateTimes.value.includes(value);
-
-    selectedDateTimes.value = isSelected
-      ? selectedDateTimes.value.filter((selectedDateTime) => selectedDateTime !== value)
-      : [...selectedDateTimes.value, value];
+    selectedDateTimes.value = [...selectedDateTimes.value, value].sort((left, right) =>
+      left.localeCompare(right),
+    );
 
     return true;
   }
@@ -185,6 +174,18 @@ export function useDateQuiz(): UseDateQuiz {
       (selectedDateTime) => selectedDateTime !== value,
     );
 
+    if (preferredDateTime.value === value) {
+      preferredDateTime.value = null;
+    }
+
+    return true;
+  }
+
+  function setPreferredDateTime(value: LocalDateTime): boolean {
+    if (phase.value !== 'availability') return false;
+    if (!selectedDateTimes.value.includes(value)) return false;
+
+    preferredDateTime.value = value;
     return true;
   }
 
@@ -202,6 +203,7 @@ export function useDateQuiz(): UseDateQuiz {
     currentQuestionIndex.value = 0;
     decision.value = null;
     selectedDateTimes.value = [];
+    preferredDateTime.value = null;
   }
 
   return {
@@ -215,6 +217,7 @@ export function useDateQuiz(): UseDateQuiz {
     decide,
     addOrToggleDateTime,
     removeDateTime,
+    setPreferredDateTime,
     complete,
     reset,
   };
