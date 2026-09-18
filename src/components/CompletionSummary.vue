@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { questions } from '../data/questions';
+import { buildCalendarIcs } from '../utils/calendar';
 import type { LocalDateTime, QuestionCategory, QuizAnswers } from '../types/quiz';
 
 const props = defineProps<{
@@ -50,7 +51,7 @@ const invitationLine = computed(() =>
     : 'Abbiamo tenuto da parte un piccolo momento speciale per noi.',
 );
 const venueSurpriseLine = 'Il luogo resta una sorpresa: ti basterà portare la tua curiosità.';
-const shareStatus = ref('');
+const actionStatus = ref('');
 
 function formatDateTime(value: LocalDateTime): string {
   return value.replace('T', ' alle ');
@@ -81,8 +82,42 @@ function isShareCancellation(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError';
 }
 
+function downloadCalendar(): void {
+  actionStatus.value = '';
+
+  let objectUrl: string | undefined;
+  let downloadLink: HTMLAnchorElement | undefined;
+
+  try {
+    const calendar = buildCalendarIcs({
+      dateTimes: props.selectedDateTimes,
+      summary: 'Un momento da aspettare',
+      description: venueSurpriseLine,
+    });
+    const calendarFile = new Blob([calendar], { type: 'text/calendar;charset=utf-8' });
+
+    objectUrl = URL.createObjectURL(calendarFile);
+    downloadLink = document.createElement('a');
+    downloadLink.href = objectUrl;
+    downloadLink.download = 'disponibilita-appuntamento.ics';
+    downloadLink.style.display = 'none';
+    document.body.append(downloadLink);
+    downloadLink.click();
+
+    actionStatus.value = 'File del calendario pronto: contiene ogni disponibilità proposta.';
+  } catch {
+    actionStatus.value = 'Non è stato possibile preparare il calendario.';
+  } finally {
+    downloadLink?.remove();
+
+    if (objectUrl) {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+}
+
 async function shareSummary(): Promise<void> {
-  shareStatus.value = '';
+  actionStatus.value = '';
 
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {
@@ -90,9 +125,9 @@ async function shareSummary(): Promise<void> {
         title: 'Il nostro piano',
         text: shareText.value,
       });
-      shareStatus.value = 'Riepilogo condiviso.';
+      actionStatus.value = 'Riepilogo condiviso.';
     } catch (error: unknown) {
-      shareStatus.value = isShareCancellation(error)
+      actionStatus.value = isShareCancellation(error)
         ? 'Condivisione annullata.'
         : 'Non è stato possibile condividere il riepilogo.';
     }
@@ -103,15 +138,15 @@ async function shareSummary(): Promise<void> {
   if (typeof navigator !== 'undefined' && typeof navigator.clipboard?.writeText === 'function') {
     try {
       await navigator.clipboard.writeText(shareText.value);
-      shareStatus.value = 'Riepilogo copiato negli appunti.';
+      actionStatus.value = 'Riepilogo copiato negli appunti.';
     } catch {
-      shareStatus.value = 'Non è stato possibile copiare il riepilogo.';
+      actionStatus.value = 'Non è stato possibile copiare il riepilogo.';
     }
 
     return;
   }
 
-  shareStatus.value = 'La condivisione non è disponibile su questo dispositivo.';
+  actionStatus.value = 'La condivisione non è disponibile su questo dispositivo.';
 }
 </script>
 
@@ -147,6 +182,11 @@ async function shareSummary(): Promise<void> {
         <span aria-hidden="true">✦</span>
         {{ venueSurpriseLine }}
       </p>
+
+      <div v-if="selectedDateTimes.length" class="invitation-card__calendar">
+        <button type="button" @click="downloadCalendar">Aggiungi al calendario</button>
+        <p>Ogni disponibilità proposta può essere aggiunta al calendario.</p>
+      </div>
     </section>
 
     <section aria-labelledby="selected-choices-heading">
@@ -184,11 +224,13 @@ async function shareSummary(): Promise<void> {
     <p>Le informazioni restano solo in questa pagina e non vengono inviate.</p>
 
     <div class="completion-summary__actions">
-      <button type="button" @click="shareSummary">Condividi riepilogo</button>
+      <button class="completion-summary__share-button" type="button" @click="shareSummary">
+        Condividi riepilogo
+      </button>
       <button type="button" @click="emit('restart')">Ricomincia</button>
     </div>
     <p class="completion-summary__share-status" role="status" aria-live="polite">
-      {{ shareStatus }}
+      {{ actionStatus }}
     </p>
   </article>
 </template>

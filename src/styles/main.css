@@ -730,3 +730,14 @@ h1[tabindex='-1']:focus {
     animation: none;
   }
 }
+
+.invitation-card__calendar {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.invitation-card__calendar p {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}

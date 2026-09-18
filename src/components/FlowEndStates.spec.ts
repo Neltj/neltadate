@@ -90,6 +90,70 @@ describe('CompletionSummary', () => {
     expect(invitationCard.get('ul').attributes('aria-label')).toBe('Date e orari proposti');
   });
 
+  it('mostra il pulsante calendario nella card per ogni disponibilità proposta', () => {
+    const wrapper = mount(CompletionSummary, { props: summaryProps });
+
+    const calendarButton = wrapper.get<HTMLButtonElement>('button').element;
+
+    expect(calendarButton.textContent).toContain('Aggiungi al calendario');
+    expect(calendarButton.type).toBe('button');
+    expect(wrapper.get('.invitation-card').text()).toContain(
+      'Ogni disponibilità proposta può essere aggiunta al calendario.',
+    );
+  });
+
+  it('scarica il calendario e comunica che contiene ogni disponibilità proposta', async () => {
+    const createObjectURL = vi.fn().mockReturnValue('blob:calendar');
+    const revokeObjectURL = vi.fn();
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+
+    try {
+      const wrapper = mount(CompletionSummary, { props: summaryProps });
+
+      await wrapper.get<HTMLButtonElement>('button').trigger('click');
+
+      expect(createObjectURL).toHaveBeenCalledOnce();
+      expect(click).toHaveBeenCalledOnce();
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:calendar');
+      expect(wrapper.get('[role="status"]').text()).toBe(
+        'File del calendario pronto: contiene ogni disponibilità proposta.',
+      );
+    } finally {
+      click.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('comunica un errore accessibile se il calendario non può essere preparato', async () => {
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn(() => {
+        throw new Error('Blob non disponibile');
+      }),
+      revokeObjectURL: vi.fn(),
+    });
+
+    try {
+      const wrapper = mount(CompletionSummary, { props: summaryProps });
+
+      await expect(
+        wrapper.get<HTMLButtonElement>('button').trigger('click'),
+      ).resolves.toBeUndefined();
+
+      expect(wrapper.get('[role="status"]').attributes()).toMatchObject({
+        'aria-live': 'polite',
+        role: 'status',
+      });
+      expect(wrapper.get('[role="status"]').text()).toBe(
+        'Non è stato possibile preparare il calendario.',
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('mantiene un messaggio caldo quando il nome è vuoto', () => {
     const wrapper = mount(CompletionSummary, {
       props: {
@@ -139,7 +203,9 @@ describe('CompletionSummary', () => {
     try {
       const wrapper = mount(CompletionSummary, { props: summaryProps });
 
-      await wrapper.get<HTMLButtonElement>('button').trigger('click');
+      await wrapper
+        .get<HTMLButtonElement>('button.completion-summary__share-button')
+        .trigger('click');
 
       expect(share).toHaveBeenCalledOnce();
       expect(share.mock.calls[0][0]).toMatchObject({ title: 'Il nostro piano' });
@@ -165,7 +231,9 @@ describe('CompletionSummary', () => {
     try {
       const wrapper = mount(CompletionSummary, { props: summaryProps });
 
-      await wrapper.get<HTMLButtonElement>('button').trigger('click');
+      await wrapper
+        .get<HTMLButtonElement>('button.completion-summary__share-button')
+        .trigger('click');
 
       expect(writeText).toHaveBeenCalledWith(
         expect.stringContaining('Riepilogo dell’appuntamento di Giulia'),
@@ -186,7 +254,9 @@ describe('CompletionSummary', () => {
     try {
       const wrapper = mount(CompletionSummary, { props: summaryProps });
 
-      await wrapper.get<HTMLButtonElement>('button').trigger('click');
+      await wrapper
+        .get<HTMLButtonElement>('button.completion-summary__share-button')
+        .trigger('click');
 
       expect(writeText).not.toHaveBeenCalled();
       expect(wrapper.get('[role="status"]').text()).toBe('Condivisione annullata.');
@@ -203,7 +273,7 @@ describe('CompletionSummary', () => {
       const wrapper = mount(CompletionSummary, { props: summaryProps });
 
       await expect(
-        wrapper.get<HTMLButtonElement>('button').trigger('click'),
+        wrapper.get<HTMLButtonElement>('button.completion-summary__share-button').trigger('click'),
       ).resolves.toBeUndefined();
 
       expect(wrapper.get('[role="status"]').text()).toBe(
