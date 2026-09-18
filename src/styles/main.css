@@ -480,6 +480,8 @@ input[type='datetime-local']::-webkit-calendar-picker-indicator {
       width: calc(100% - 0.5rem);
       max-inline-size: calc(100% - 0.5rem);
       max-width: calc(100% - 0.5rem);
+      justify-self: center;
+      margin-inline: auto;
     }
   }
 }
