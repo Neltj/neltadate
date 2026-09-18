@@ -52,7 +52,7 @@ function complete(): void {
       <div class="availability-date-time-field">
         <label for="availability-date-time">Data e ora</label>
         <p id="availability-date-time-hint" class="availability-date-time-hint">
-          Seleziona una data e un orario nel formato giorno, mese, anno, ore e minuti.
+          Tocca il campo per aprire il calendario e selezionare data e ora.
         </p>
         <input
           id="availability-date-time"

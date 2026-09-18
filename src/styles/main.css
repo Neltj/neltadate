@@ -412,10 +412,17 @@ form {
 .availability-form,
 .availability-date-time-field {
   min-inline-size: 0;
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+
+.availability-form {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .availability-date-time-field {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.375rem;
 }
 
@@ -425,10 +432,14 @@ form {
 }
 
 input[type='datetime-local'] {
+  display: block;
   box-sizing: border-box;
   inline-size: 100%;
+  width: 100%;
   min-inline-size: 0;
+  min-width: 0;
   max-inline-size: 100%;
+  max-width: 100%;
   min-block-size: 2.75rem;
   padding: 0.625rem 0.75rem;
   border: 2px solid var(--color-border);
@@ -436,6 +447,7 @@ input[type='datetime-local'] {
   background: var(--color-surface);
   color: var(--color-text);
   color-scheme: inherit;
+  font-size: 16px;
 }
 
 /* Safari/iOS renders date and time fields inside a WebKit shadow tree. */
